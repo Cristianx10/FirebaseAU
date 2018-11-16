@@ -1,4 +1,4 @@
-package com.example.aprendizajeactivo.firebaseauto;
+package com.example.aprendizajeactivo.whatappdesk;
 
 import android.support.annotation.NonNull;
 import android.widget.EditText;
@@ -8,6 +8,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -104,8 +105,7 @@ public class FirebaseAU {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Object obj = dataSnapshot.getValue(validation.getObjectClass());
-                validation.getObjectReference(obj);
+                validation.getObjectReference(dataSnapshot );
             }
 
             @Override
@@ -116,6 +116,26 @@ public class FirebaseAU {
     }
 
 
+    //Leer la base de datos por medio de un objeto de una ramma
+    public static void readObjectRealTime(final DataObjectListener validation) {
+
+        validation.getReferenceDataBase().addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                validation.getObjectReference(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public static Object convertObjectTo(@NonNull DataSnapshot dataSnapshot, Class clase){
+        return dataSnapshot.getValue(clase);
+    }
+
 
     public interface DataUserValidation{
         public void actionIsSuccessful(@NonNull Task<AuthResult> task);
@@ -124,10 +144,7 @@ public class FirebaseAU {
 
     public interface DataObjectListener {
         public DatabaseReference getReferenceDataBase();
-
-        public Class getObjectClass();
-
-        public void getObjectReference(Object o);
+        public void getObjectReference( @NonNull DataSnapshot dataSnapshot);
     }
 
 
@@ -195,6 +212,14 @@ public class FirebaseAU {
 
     public static void guardaObjeto(DatabaseReference ref, Object objeto){
         ref.push().setValue(objeto);
+    }
+
+    public static void guardaEnUidUsuario(DatabaseReference ref, Object objeto){
+        ref.child(auth.getCurrentUser().getUid()).setValue(objeto);
+    }
+
+    public static int getCount(DataSnapshot dataSnapshot){
+        return (int) dataSnapshot.getChildrenCount();
     }
 
     public static FirebaseAuth getAuth() {
